@@ -1,19 +1,46 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import useLocation from '../../hooks/useLocation';
-import useNetInfo from '../../hooks/useNetInfo';
 import LocationNotFound from '../../components/LocationNotFound';
+import NetInfo from '@react-native-community/netinfo';
 
 const Location = () => {
   const { location, address } = useLocation(300000); // 5 minutes
-  const isConnected = useNetInfo();
+  const [isConnected, setConnected] = useState(true);
+
+	useEffect(() => {
+		const unsubscribe = NetInfo.addEventListener((state) => {
+			setConnected(state.isConnected || false);
+			if (!state.isConnected) {
+				showAlert();
+			}
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	}, []);
+
+  const showAlert = () => {
+		Alert.alert(
+			'Internet Connection',
+			'You are offline. Some features may not be available.'
+		);
+	};
 
   return (
     <View style={styles.container}>
-      <ConnectionStatus isConnected={isConnected} />
+     <View style={styles.header}>
+        <MaterialCommunityIcons
+          name={isConnected ? "wifi" : "wifi-off"}
+          size={24}
+          color={isConnected ? Colors.light.green : Colors.light.red}
+        />
+        <Text style={styles.connectStatus}>{!isConnected && "Not"} Connected Internet</Text>
+      </View>
         {
           location ? 
           <>
@@ -46,17 +73,6 @@ const Location = () => {
     </View>
   );
 };
-
-const ConnectionStatus = (isConnected: {isConnected: boolean}) => (
-  <View style={styles.header}>
-    <MaterialCommunityIcons
-      name={isConnected ? "wifi" : "wifi-off"}
-      size={24}
-      color={isConnected ? Colors.light.green : Colors.light.red}
-    />
-    <Text style={styles.connectStatus}>{!isConnected && "Not"} Connected Internet</Text>
-  </View>
-);
 
 const LocationInfo = ({ address }: { address: string | null }) => (
   <View style={styles.locationContainer}>

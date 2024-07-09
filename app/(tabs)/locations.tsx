@@ -17,7 +17,7 @@ const renderItem = ({ item }: { item: LocationInfo }) => (
   </View>
 );
 
-const FlatListExample = () => {
+const Locations = () => {
   const [locationData, setLocationData] = useState<LocationInfo[]>([]);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ const FlatListExample = () => {
   return (
     <View style={styles.container}>
       {
-        locationData ? 
+        locationData.length == 0 ? 
         <LocationNotFound type="title">No records found to list</LocationNotFound>
         :
         <FlatList
@@ -77,4 +77,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FlatListExample;
+export default Locations;
