@@ -42,7 +42,7 @@ const Location = () => {
         <Text style={styles.connectStatus}>{!isConnected && "Not"} Connected Internet</Text>
       </View>
         {
-          location ? 
+          isConnected && location ? 
           <>
             <View style={styles.mapContainer}>
               <MapView
