@@ -24,7 +24,7 @@ const useGetLocationsList = async (): Promise<LocationData[]> => {
       } else {
         return null;
       }
-    }).filter((item: any): item is LocationData => !!item); // null değerleri filtrele
+    });
 
     return locationData;
   } catch (error) {

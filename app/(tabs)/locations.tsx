@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, FlatList, Text, StyleSheet } from 'react-native';
 import useGetLocationsList from '../../hooks/useGetLocationsList';
 import LocationNotFound from '../../components/LocationNotFound';
+import useLocation from '@/hooks/useLocation';
+import Loading from '../../components/Loading'
 
 interface LocationInfo {
   id: string;
@@ -13,14 +15,15 @@ interface LocationInfo {
 const renderItem = ({ item }: { item: LocationInfo }) => (
   <View style={styles.item}>
     <Text style={styles.title}>{item.address}</Text>
-    {/* Diğer bilgileri buraya ekleyebilirsiniz */}
   </View>
 );
 
 const Locations = () => {
   const [locationData, setLocationData] = useState<LocationInfo[]>([]);
+  const { location } = useLocation(100000); // 5 minutes
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const getLocations = () => {
     const fetchLocations = async () => {
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const data = await useGetLocationsList();
@@ -28,15 +31,33 @@ const Locations = () => {
     };
 
     fetchLocations();
+  }
+  useEffect(() => {
+    getLocations();
   }, []);
+
+  useEffect(() => {
+    getLocations();
+  }, [location]);
+
+  useEffect(() => {
+    if (locationData.length !== 0) {
+      setLoading(false);
+    }
+    getLocations();
+  }, [locationData]);
 
   return (
     <View style={styles.container}>
       {
-        locationData.length == 0 ? 
-        <LocationNotFound type="title">No records found to list</LocationNotFound>
-        :
-        <FlatList
+        loading ? (
+          <Loading visible={loading} />
+        ) : locationData.length == 0 ? (
+          <LocationNotFound 
+            title="No records found to list"
+            subtitle="Please check location services or your internet and try again"
+          />
+        ) : <FlatList
           data={locationData}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}

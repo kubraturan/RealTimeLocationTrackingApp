@@ -32,7 +32,6 @@ const useLocation = (interval: number) => {
                 latitude: location.coords.latitude,
             };
             setLocation(newLocation);
-            Alert.alert("Location updated");
 
             const regionName = await Location.reverseGeocodeAsync(newLocation);
             const {
