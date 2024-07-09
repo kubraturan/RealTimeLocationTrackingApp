@@ -1,70 +1,109 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Colors } from '@/constants/Colors';
+import useLocation from '../../hooks/useLocation';
+import useNetInfo from '../../hooks/useNetInfo';
+import LocationNotFound from '../../components/LocationNotFound';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const Location = () => {
+  const { location, address } = useLocation(300000); // 5 minutes
+  const isConnected = useNetInfo();
 
-export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <ConnectionStatus isConnected={isConnected} />
+        {
+          location ? 
+          <>
+            <View style={styles.mapContainer}>
+              <MapView
+                style={styles.map}
+                region={{
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                  latitudeDelta: 0.015,
+                  longitudeDelta: 0.0121,
+                }}
+                showsUserLocation={true}
+              >
+                {(
+                  <Marker
+                    coordinate={location}
+                    title={'Current Location'}
+                    description={address || ''}
+                  />
+                )}
+              </MapView>
+            </View>
+            <LocationInfo address={address} />
+          </>
+          :
+          <LocationNotFound type="title">Location could not be retrieved</LocationNotFound>
+        }
+      
+    </View>
   );
-}
+};
+
+const ConnectionStatus = (isConnected: {isConnected: boolean}) => (
+  <View style={styles.header}>
+    <MaterialCommunityIcons
+      name={isConnected ? "wifi" : "wifi-off"}
+      size={24}
+      color={isConnected ? Colors.light.green : Colors.light.red}
+    />
+    <Text style={styles.connectStatus}>{!isConnected && "Not"} Connected Internet</Text>
+  </View>
+);
+
+const LocationInfo = ({ address }: { address: string | null }) => (
+  <View style={styles.locationContainer}>
+    <MaterialCommunityIcons name="map-marker" size={26} color="black" />
+    <Text style={styles.location}>{address}</Text>
+  </View>
+);
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '90%',
+    marginTop: 50,
+  },
+  map: {
+    width: '90%',
+    height: 400,
+    marginTop: 20,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  connectStatus: {
+    color: 'black',
+    fontSize: 18,
+  },
+  locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    marginTop: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  location: {
+    color: 'black',
+    fontSize: 20,
+    marginLeft: 10,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  mapContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 30,
   },
 });
+
+export default Location;
